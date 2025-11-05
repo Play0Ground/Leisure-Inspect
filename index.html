@@ -1,0 +1,1058 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leisure Inspect - Your Event & Lifestyle Companion</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- AOS Animation -->
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+    
+    <!-- JsBarcode for generating barcodes -->
+    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+        }
+        
+        .gradient-text {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+        
+        .event-card {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .event-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+        }
+        
+        .sidebar {
+            position: fixed;
+            left: -300px;
+            top: 0;
+            width: 300px;
+            height: 100vh;
+            background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
+            transition: all 0.3s ease;
+            z-index: 1000;
+            overflow-y: auto;
+        }
+        
+        .sidebar.active {
+            left: 0;
+        }
+        
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            z-index: 999;
+        }
+        
+        .overlay.active {
+            display: block;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal.active {
+            display: flex;
+        }
+        
+        .ticket-slip {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .ticket-slip::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .perforated-line {
+            border-top: 2px dashed #ccc;
+            margin: 20px 0;
+            position: relative;
+        }
+        
+        .perforated-line::before,
+        .perforated-line::after {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 50%;
+            top: -10px;
+            border: 2px solid #e5e7eb;
+        }
+        
+        .perforated-line::before {
+            left: -35px;
+        }
+        
+        .perforated-line::after {
+            right: -35px;
+        }
+        
+        .loyalty-badge {
+            background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        
+        .wallet-card {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            border-radius: 20px;
+            padding: 30px;
+            color: white;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+        
+        .promo-badge {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            animation: slideIn 1s ease;
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateX(-100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        .floating {
+            animation: floating 3s ease-in-out infinite;
+        }
+        
+        @keyframes floating {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+        
+        .menu-item {
+            transition: all 0.3s ease;
+            cursor: pointer;
+            padding: 15px 20px;
+            margin: 10px;
+            border-radius: 10px;
+        }
+        
+        .menu-item:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateX(10px);
+        }
+        
+        input, textarea {
+            transition: all 0.3s ease;
+        }
+        
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <!-- Overlay -->
+    <div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
+    
+    <!-- Sidebar Menu -->
+    <div class="sidebar" id="sidebar">
+        <div class="p-6">
+            <div class="flex items-center justify-between mb-8">
+                <h2 class="text-2xl font-bold text-white">Menu</h2>
+                <button onclick="toggleSidebar()" class="text-white text-2xl">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="space-y-2">
+                <div class="menu-item text-white" onclick="showSection('dashboard')">
+                    <i class="fas fa-home mr-3"></i> Dashboard
+                </div>
+                <div class="menu-item text-white" onclick="showSection('wallet')">
+                    <i class="fas fa-wallet mr-3"></i> My Wallet
+                </div>
+                <div class="menu-item text-white" onclick="showSection('tours')">
+                    <i class="fas fa-map-marked-alt mr-3"></i> My Tours
+                </div>
+                <div class="menu-item text-white" onclick="showSection('loyalty')">
+                    <i class="fas fa-award mr-3"></i> Loyalty Rewards
+                </div>
+                <div class="menu-item text-white" onclick="showSection('promos')">
+                    <i class="fas fa-tags mr-3"></i> My Promos
+                </div>
+                <div class="menu-item text-white" onclick="showSection('refer')">
+                    <i class="fas fa-user-friends mr-3"></i> Refer a Friend
+                </div>
+                <div class="menu-item text-white" onclick="showSection('support')">
+                    <i class="fas fa-headset mr-3"></i> Customer Support
+                </div>
+                <div class="menu-item text-white" onclick="logout()">
+                    <i class="fas fa-sign-out-alt mr-3"></i> Logout
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Welcome/Login Screen -->
+    <div id="welcomeScreen" class="min-h-screen flex items-center justify-center p-4">
+        <div class="glass-effect rounded-3xl p-8 max-w-md w-full" data-aos="zoom-in">
+            <div class="text-center mb-8">
+                <div class="floating mb-6">
+                    <i class="fas fa-ticket-alt text-6xl text-white"></i>
+                </div>
+                <h1 class="text-4xl font-bold text-white mb-2" style="font-family: 'Playfair Display', serif;">Leisure Inspect</h1>
+                <p class="text-white text-opacity-80">Your Event & Lifestyle Companion</p>
+            </div>
+            
+            <div id="loginForm" class="space-y-4">
+                <div>
+                    <input type="email" id="loginEmail" placeholder="Email Address" 
+                           class="w-full px-4 py-3 rounded-lg bg-white bg-opacity-20 text-white placeholder-white placeholder-opacity-70 border border-white border-opacity-30">
+                </div>
+                <div>
+                    <input type="password" id="loginPassword" placeholder="Password" 
+                           class="w-full px-4 py-3 rounded-lg bg-white bg-opacity-20 text-white placeholder-white placeholder-opacity-70 border border-white border-opacity-30">
+                </div>
+                <button onclick="login()" class="w-full btn-primary text-white font-semibold py-3 rounded-lg">
+                    Sign In
+                </button>
+                <button onclick="guestMode()" class="w-full bg-white bg-opacity-20 text-white font-semibold py-3 rounded-lg hover:bg-opacity-30">
+                    Continue as Guest
+                </button>
+                <div class="text-center">
+                    <button onclick="showRegister()" class="text-white text-sm hover:underline">
+                        Don't have an account? Register
+                    </button>
+                </div>
+            </div>
+            
+            <div id="registerForm" class="space-y-4 hidden">
+                <div>
+                    <input type="text" id="regName" placeholder="Full Name" 
+                           class="w-full px-4 py-3 rounded-lg bg-white bg-opacity-20 text-white placeholder-white placeholder-opacity-70 border border-white border-opacity-30">
+                </div>
+                <div>
+                    <input type="email" id="regEmail" placeholder="Email Address" 
+                           class="w-full px-4 py-3 rounded-lg bg-white bg-opacity-20 text-white placeholder-white placeholder-opacity-70 border border-white border-opacity-30">
+                </div>
+                <div>
+                    <input type="tel" id="regPhone" placeholder="Phone Number" 
+                           class="w-full px-4 py-3 rounded-lg bg-white bg-opacity-20 text-white placeholder-white placeholder-opacity-70 border border-white border-opacity-30">
+                </div>
+                <div>
+                    <input type="password" id="regPassword" placeholder="Password" 
+                           class="w-full px-4 py-3 rounded-lg bg-white bg-opacity-20 text-white placeholder-white placeholder-opacity-70 border border-white border-opacity-30">
+                </div>
+                <button onclick="register()" class="w-full btn-primary text-white font-semibold py-3 rounded-lg">
+                    Create Account
+                </button>
+                <div class="text-center">
+                    <button onclick="showLogin()" class="text-white text-sm hover:underline">
+                        Already have an account? Sign In
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Main App Container -->
+    <div id="appContainer" class="hidden">
+        <!-- Header -->
+        <header class="glass-effect sticky top-0 z-50">
+            <div class="container mx-auto px-4 py-4">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-4">
+                        <button onclick="toggleSidebar()" class="text-white text-2xl">
+                            <i class="fas fa-bars"></i>
+                        </button>
+                        <h1 class="text-2xl font-bold text-white">Leisure Inspect</h1>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <div class="text-white text-right hidden md:block">
+                            <p class="text-sm opacity-80">Welcome back,</p>
+                            <p class="font-semibold" id="userName">Guest User</p>
+                        </div>
+                        <div class="w-10 h-10 rounded-full bg-white bg-opacity-20 flex items-center justify-center">
+                            <i class="fas fa-user text-white"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+        
+        <!-- Dashboard Section -->
+        <section id="dashboard" class="container mx-auto px-4 py-8">
+            <!-- Quick Stats -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8" data-aos="fade-up">
+                <div class="glass-effect rounded-2xl p-6 text-white">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm opacity-80">Wallet Balance</p>
+                            <p class="text-3xl font-bold">R3,200</p>
+                        </div>
+                        <i class="fas fa-wallet text-4xl opacity-50"></i>
+                    </div>
+                </div>
+                <div class="glass-effect rounded-2xl p-6 text-white">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm opacity-80">Loyalty Points</p>
+                            <p class="text-3xl font-bold">1,450</p>
+                        </div>
+                        <i class="fas fa-star text-4xl opacity-50"></i>
+                    </div>
+                </div>
+                <div class="glass-effect rounded-2xl p-6 text-white">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm opacity-80">Upcoming Events</p>
+                            <p class="text-3xl font-bold">5</p>
+                        </div>
+                        <i class="fas fa-calendar text-4xl opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Upcoming Events -->
+            <div class="mb-8">
+                <h2 class="text-3xl font-bold text-white mb-6" data-aos="fade-right">Upcoming Events</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Event Card 1 -->
+                    <div class="event-card glass-effect rounded-2xl overflow-hidden" data-aos="fade-up" data-aos-delay="100" onclick="selectEvent('Summer Music Festival', 450, 'event1')">
+                        <div class="h-48 bg-gradient-to-br from-pink-500 to-purple-600 flex items-center justify-center">
+                            <i class="fas fa-music text-6xl text-white"></i>
+                        </div>
+                        <div class="p-6 text-white">
+                            <h3 class="text-xl font-bold mb-2">Summer Music Festival</h3>
+                            <p class="text-sm opacity-80 mb-3">December 15, 2025 • 18:00</p>
+                            <p class="text-sm mb-4">Experience the best live music with top artists from around the country!</p>
+                            <div class="flex items-center justify-between">
+                                <span class="text-2xl font-bold">R450</span>
+                                <button class="bg-white text-purple-600 px-4 py-2 rounded-lg font-semibold hover:bg-opacity-90">
+                                    Book Now
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Event Card 2 -->
+                    <div class="event-card glass-effect rounded-2xl overflow-hidden" data-aos="fade-up" data-aos-delay="200" onclick="selectEvent('Food & Wine Expo', 320, 'event2')">
+                        <div class="h-48 bg-gradient-to-br from-orange-500 to-red-600 flex items-center justify-center">
+                            <i class="fas fa-utensils text-6xl text-white"></i>
+                        </div>
+                        <div class="p-6 text-white">
+                            <h3 class="text-xl font-bold mb-2">Food & Wine Expo</h3>
+                            <p class="text-sm opacity-80 mb-3">December 20, 2025 • 12:00</p>
+                            <p class="text-sm mb-4">Taste exquisite dishes and premium wines from award-winning chefs!</p>
+                            <div class="flex items-center justify-between">
+                                <span class="text-2xl font-bold">R320</span>
+                                <button class="bg-white text-red-600 px-4 py-2 rounded-lg font-semibold hover:bg-opacity-90">
+                                    Book Now
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Event Card 3 -->
+                    <div class="event-card glass-effect rounded-2xl overflow-hidden" data-aos="fade-up" data-aos-delay="300" onclick="selectEvent('Adventure Park Day', 280, 'event3')">
+                        <div class="h-48 bg-gradient-to-br from-green-500 to-teal-600 flex items-center justify-center">
+                            <i class="fas fa-hiking text-6xl text-white"></i>
+                        </div>
+                        <div class="p-6 text-white">
+                            <h3 class="text-xl font-bold mb-2">Adventure Park Day</h3>
+                            <p class="text-sm opacity-80 mb-3">December 22, 2025 • 09:00</p>
+                            <p class="text-sm mb-4">Thrilling activities for the whole family including zip-lining and rock climbing!</p>
+                            <div class="flex items-center justify-between">
+                                <span class="text-2xl font-bold">R280</span>
+                                <button class="bg-white text-teal-600 px-4 py-2 rounded-lg font-semibold hover:bg-opacity-90">
+                                    Book Now
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Event Card 4 -->
+                    <div class="event-card glass-effect rounded-2xl overflow-hidden" data-aos="fade-up" data-aos-delay="400" onclick="selectEvent('Comedy Night Live', 200, 'event4')">
+                        <div class="h-48 bg-gradient-to-br from-yellow-500 to-orange-600 flex items-center justify-center">
+                            <i class="fas fa-laugh text-6xl text-white"></i>
+                        </div>
+                        <div class="p-6 text-white">
+                            <h3 class="text-xl font-bold mb-2">Comedy Night Live</h3>
+                            <p class="text-sm opacity-80 mb-3">January 5, 2026 • 20:00</p>
+                            <p class="text-sm mb-4">An evening of laughter with South Africa's top comedians!</p>
+                            <div class="flex items-center justify-between">
+                                <span class="text-2xl font-bold">R200</span>
+                                <button class="bg-white text-orange-600 px-4 py-2 rounded-lg font-semibold hover:bg-opacity-90">
+                                    Book Now
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Event Card 5 -->
+                    <div class="event-card glass-effect rounded-2xl overflow-hidden" data-aos="fade-up" data-aos-delay="500" onclick="selectEvent('Beach Volleyball Tournament', 150, 'event5')">
+                        <div class="h-48 bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center">
+                            <i class="fas fa-volleyball-ball text-6xl text-white"></i>
+                        </div>
+                        <div class="p-6 text-white">
+                            <h3 class="text-xl font-bold mb-2">Beach Volleyball Tournament</h3>
+                            <p class="text-sm opacity-80 mb-3">January 10, 2026 • 10:00</p>
+                            <p class="text-sm mb-4">Join teams competing for the championship at Durban Beach!</p>
+                            <div class="flex items-center justify-between">
+                                <span class="text-2xl font-bold">R150</span>
+                                <button class="bg-white text-cyan-600 px-4 py-2 rounded-lg font-semibold hover:bg-opacity-90">
+                                    Book Now
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- My Wallet Section -->
+        <section id="wallet" class="container mx-auto px-4 py-8 hidden">
+            <h2 class="text-3xl font-bold text-white mb-6" data-aos="fade-right">My Wallet</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Wallet Card -->
+                <div class="wallet-card" data-aos="fade-up">
+                    <div class="flex items-center justify-between mb-6">
+                        <div>
+                            <p class="text-sm opacity-80">Current Balance</p>
+                            <p class="text-4xl font-bold">R3,200.00</p>
+                        </div>
+                        <i class="fas fa-credit-card text-5xl opacity-50"></i>
+                    </div>
+                    <div class="space-y-2">
+                        <p class="text-sm">Account Holder: <span id="walletName">Guest User</span></p>
+                        <p class="text-sm">Account Type: Premium</p>
+                        <p class="text-sm">Member Since: Nov 2025</p>
+                    </div>
+                </div>
+                
+                <!-- Deposit Funds -->
+                <div class="glass-effect rounded-2xl p-6" data-aos="fade-up" data-aos-delay="100">
+                    <h3 class="text-xl font-bold text-white mb-4">Deposit Funds</h3>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="text-white text-sm mb-2 block">Amount (R)</label>
+                            <input type="number" id="depositAmount" placeholder="Enter amount" 
+                                   class="w-full px-4 py-3 rounded-lg bg-white bg-opacity-20 text-white placeholder-white placeholder-opacity-50 border border-white border-opacity-30">
+                        </div>
+                        <div>
+                            <label class="text-white text-sm mb-2 block">Payment Method</label>
+                            <select class="w-full px-4 py-3 rounded-lg bg-white bg-opacity-20 text-white border border-white border-opacity-30">
+                                <option value="card">Credit/Debit Card</option>
+                                <option value="eft">EFT</option>
+                                <option value="instant">Instant EFT</option>
+                            </select>
+                        </div>
+                        <button onclick="depositFunds()" class="w-full btn-primary text-white font-semibold py-3 rounded-lg">
+                            <i class="fas fa-plus-circle mr-2"></i> Deposit Now
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Recent Transactions -->
+            <div class="mt-8 glass-effect rounded-2xl p-6" data-aos="fade-up">
+                <h3 class="text-xl font-bold text-white mb-4">Recent Transactions</h3>
+                <div class="space-y-3">
+                    <div class="flex items-center justify-between p-4 bg-white bg-opacity-10 rounded-lg">
+                        <div class="flex items-center space-x-3">
+                            <i class="fas fa-ticket-alt text-green-400 text-xl"></i>
+                            <div>
+                                <p class="text-white font-semibold">Event Ticket Purchase</p>
+                                <p class="text-white text-sm opacity-70">Nov 3, 2025</p>
+                            </div>
+                        </div>
+                        <span class="text-red-400 font-bold">-R450</span>
+                    </div>
+                    <div class="flex items-center justify-between p-4 bg-white bg-opacity-10 rounded-lg">
+                        <div class="flex items-center space-x-3">
+                            <i class="fas fa-arrow-down text-green-400 text-xl"></i>
+                            <div>
+                                <p class="text-white font-semibold">Deposit</p>
+                                <p class="text-white text-sm opacity-70">Nov 1, 2025</p>
+                            </div>
+                        </div>
+                        <span class="text-green-400 font-bold">+R1,000</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- My Tours Section -->
+        <section id="tours" class="container mx-auto px-4 py-8 hidden">
+            <h2 class="text-3xl font-bold text-white mb-6" data-aos="fade-right">My Tours</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="glass-effect rounded-2xl p-6 text-white" data-aos="fade-up">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-xl font-bold">Summer Music Festival</h3>
+                        <span class="bg-green-500 px-3 py-1 rounded-full text-xs">Confirmed</span>
+                    </div>
+                    <p class="text-sm opacity-80 mb-2">December 15, 2025 • 18:00</p>
+                    <p class="text-sm mb-4">Ticket ID: LI-2025-SMF-00123</p>
+                    <button class="w-full bg-white bg-opacity-20 hover:bg-opacity-30 py-2 rounded-lg">
+                        View Ticket
+                    </button>
+                </div>
+                
+                <div class="glass-effect rounded-2xl p-6 text-white text-center" data-aos="fade-up" data-aos-delay="100">
+                    <i class="fas fa-calendar-plus text-6xl opacity-50 mb-4"></i>
+                    <p class="text-lg opacity-80">No more tours booked</p>
+                    <button onclick="showSection('dashboard')" class="mt-4 btn-primary px-6 py-2 rounded-lg">
+                        Browse Events
+                    </button>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Loyalty Rewards Section -->
+        <section id="loyalty" class="container mx-auto px-4 py-8 hidden">
+            <h2 class="text-3xl font-bold text-white mb-6" data-aos="fade-right">Loyalty Rewards</h2>
+            
+            <div class="glass-effect rounded-2xl p-8 mb-6" data-aos="fade-up">
+                <div class="text-center mb-6">
+                    <div class="loyalty-badge inline-block w-32 h-32 rounded-full flex items-center justify-center mb-4">
+                        <i class="fas fa-crown text-5xl text-white"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold text-white mb-2">Gold Member</h3>
+                    <p class="text-white opacity-80">You have 1,450 points</p>
+                </div>
+                
+                <div class="bg-white bg-opacity-10 rounded-lg p-4 mb-4">
+                    <div class="flex justify-between text-white mb-2">
+                        <span>Progress to Platinum</span>
+                        <span>1,450 / 2,500</span>
+                    </div>
+                    <div class="w-full bg-white bg-opacity-20 rounded-full h-3">
+                        <div class="bg-yellow-400 h-3 rounded-full" style="width: 58%"></div>
+                    </div>
+                </div>
+                
+                <p class="text-white text-center text-sm opacity-80">Earn 1,050 more points to unlock Platinum benefits!</p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="glass-effect rounded-2xl p-6 text-white text-center" data-aos="fade-up" data-aos-delay="100">
+                    <i class="fas fa-gift text-4xl mb-3 text-yellow-400"></i>
+                    <h4 class="font-bold mb-2">Free Event</h4>
+                    <p class="text-sm opacity-80 mb-3">Redeem 500 points</p>
+                    <button class="w-full bg-yellow-400 text-purple-900 py-2 rounded-lg font-semibold hover:bg-yellow-300">
+                        Redeem
+                    </button>
+                </div>
+                
+                <div class="glass-effect rounded-2xl p-6 text-white text-center" data-aos="fade-up" data-aos-delay="200">
+                    <i class="fas fa-percent text-4xl mb-3 text-green-400"></i>
+                    <h4 class="font-bold mb-2">20% Discount</h4>
+                    <p class="text-sm opacity-80 mb-3">Redeem 300 points</p>
+                    <button class="w-full bg-green-400 text-purple-900 py-2 rounded-lg font-semibold hover:bg-green-300">
+                        Redeem
+                    </button>
+                </div>
+                
+                <div class="glass-effect rounded-2xl p-6 text-white text-center" data-aos="fade-up" data-aos-delay="300">
+                    <i class="fas fa-shopping-bag text-4xl mb-3 text-blue-400"></i>
+                    <h4 class="font-bold mb-2">R100 Voucher</h4>
+                    <p class="text-sm opacity-80 mb-3">Redeem 200 points</p>
+                    <button class="w-full bg-blue-400 text-purple-900 py-2 rounded-lg font-semibold hover:bg-blue-300">
+                        Redeem
+                    </button>
+                </div>
+            </div>
+        </section>
+        
+        <!-- My Promos Section -->
+        <section id="promos" class="container mx-auto px-4 py-8 hidden">
+            <h2 class="text-3xl font-bold text-white mb-6" data-aos="fade-right">My Promos</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="promo-badge rounded-2xl p-6 text-white" data-aos="fade-up">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-xl font-bold">Weekend Special</h3>
+                        <span class="bg-white bg-opacity-30 px-3 py-1 rounded-full text-xs">Active</span>
+                    </div>
+                    <p class="text-2xl font-bold mb-2">50% OFF</p>
+                    <p class="text-sm mb-4">Valid on all weekend events</p>
+                    <p class="text-xs opacity-80">Expires: Dec 31, 2025</p>
+                    <button class="mt-4 w-full bg-white text-pink-600 py-2 rounded-lg font-semibold">
+                        Use Code: WEEKEND50
+                    </button>
+                </div>
+                
+                <div class="glass-effect rounded-2xl p-6 text-white" data-aos="fade-up" data-aos-delay="100">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-xl font-bold">New Member Bonus</h3>
+                        <span class="bg-green-500 px-3 py-1 rounded-full text-xs">Active</span>
+                    </div>
+                    <p class="text-2xl font-bold mb-2">R200 Credit</p>
+                    <p class="text-sm mb-4">Welcome bonus for new members</p>
+                    <p class="text-xs opacity-80">Expires: Jan 15, 2026</p>
+                    <button class="mt-4 w-full bg-white bg-opacity-20 hover:bg-opacity-30 py-2 rounded-lg">
+                        Use Code: WELCOME200
+                    </button>
+                </div>
+                
+                <div class="glass-effect rounded-2xl p-6 text-white" data-aos="fade-up" data-aos-delay="200">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-xl font-bold">ShopRite Partner</h3>
+                        <span class="bg-yellow-500 px-3 py-1 rounded-full text-xs">Partner</span>
+                    </div>
+                    <p class="text-2xl font-bold mb-2">R50 Voucher</p>
+                    <p class="text-sm mb-4">Free with every ticket purchase</p>
+                    <p class="text-xs opacity-80">Available on checkout</p>
+                    <button class="mt-4 w-full bg-yellow-500 text-purple-900 py-2 rounded-lg font-semibold">
+                        Auto-Applied
+                    </button>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Refer a Friend Section -->
+        <section id="refer" class="container mx-auto px-4 py-8 hidden">
+            <h2 class="text-3xl font-bold text-white mb-6" data-aos="fade-right">Refer a Friend</h2>
+            
+            <div class="glass-effect rounded-2xl p-8 text-white text-center mb-6" data-aos="fade-up">
+                <i class="fas fa-user-plus text-6xl mb-4 text-yellow-400"></i>
+                <h3 class="text-2xl font-bold mb-3">Earn R100 for Every Friend!</h3>
+                <p class="mb-6 opacity-80">Share your unique referral code and get R100 credited to your wallet when they make their first purchase.</p>
+                
+                <div class="bg-white bg-opacity-20 rounded-lg p-4 mb-4 inline-block">
+                    <p class="text-sm mb-2">Your Referral Code</p>
+                    <p class="text-3xl font-bold tracking-wider">LEISURE2025</p>
+                </div>
+                
+                <div class="flex justify-center space-x-4 mt-6">
+                    <button class="bg-blue-500 hover:bg-blue-600 px-6 py-3 rounded-lg font-semibold">
+                        <i class="fab fa-facebook-f mr-2"></i> Share
+                    </button>
+                    <button class="bg-green-500 hover:bg-green-600 px-6 py-3 rounded-lg font-semibold">
+                        <i class="fab fa-whatsapp mr-2"></i> Share
+                    </button>
+                    <button class="bg-purple-500 hover:bg-purple-600 px-6 py-3 rounded-lg font-semibold">
+                        <i class="fas fa-link mr-2"></i> Copy Link
+                    </button>
+                </div>
+            </div>
+            
+            <div class="glass-effect rounded-2xl p-6" data-aos="fade-up" data-aos-delay="100">
+                <h4 class="text-xl font-bold text-white mb-4">Referral Stats</h4>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="bg-white bg-opacity-10 rounded-lg p-4 text-white text-center">
+                        <p class="text-3xl font-bold">12</p>
+                        <p class="text-sm opacity-80">Friends Invited</p>
+                    </div>
+                    <div class="bg-white bg-opacity-10 rounded-lg p-4 text-white text-center">
+                        <p class="text-3xl font-bold">7</p>
+                        <p class="text-sm opacity-80">Successful Referrals</p>
+                    </div>
+                    <div class="bg-white bg-opacity-10 rounded-lg p-4 text-white text-center">
+                        <p class="text-3xl font-bold">R700</p>
+                        <p class="text-sm opacity-80">Total Earned</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Customer Support Section -->
+        <section id="support" class="container mx-auto px-4 py-8 hidden">
+            <h2 class="text-3xl font-bold text-white mb-6" data-aos="fade-right">Customer Support</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="glass-effect rounded-2xl p-6" data-aos="fade-up">
+                    <h3 class="text-xl font-bold text-white mb-4">Contact Us</h3>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="text-white text-sm mb-2 block">Your Name</label>
+                            <input type="text" placeholder="Enter your name" 
+                                   class="w-full px-4 py-3 rounded-lg bg-white bg-opacity-20 text-white placeholder-white placeholder-opacity-50 border border-white border-opacity-30">
+                        </div>
+                        <div>
+                            <label class="text-white text-sm mb-2 block">Email</label>
+                            <input type="email" placeholder="Enter your email" 
+                                   class="w-full px-4 py-3 rounded-lg bg-white bg-opacity-20 text-white placeholder-white placeholder-opacity-50 border border-white border-opacity-30">
+                        </div>
+                        <div>
+                            <label class="text-white text-sm mb-2 block">Message</label>
+                            <textarea rows="4" placeholder="How can we help you?" 
+                                      class="w-full px-4 py-3 rounded-lg bg-white bg-opacity-20 text-white placeholder-white placeholder-opacity-50 border border-white border-opacity-30"></textarea>
+                        </div>
+                        <button class="w-full btn-primary text-white font-semibold py-3 rounded-lg">
+                            <i class="fas fa-paper-plane mr-2"></i> Send Message
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="space-y-6">
+                    <div class="glass-effect rounded-2xl p-6 text-white" data-aos="fade-up" data-aos-delay="100">
+                        <div class="flex items-center space-x-4">
+                            <i class="fas fa-phone text-3xl text-green-400"></i>
+                            <div>
+                                <p class="font-bold">Call Us</p>
+                                <p class="text-sm opacity-80">0800 123 456</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="glass-effect rounded-2xl p-6 text-white" data-aos="fade-up" data-aos-delay="200">
+                        <div class="flex items-center space-x-4">
+                            <i class="fas fa-envelope text-3xl text-blue-400"></i>
+                            <div>
+                                <p class="font-bold">Email Us</p>
+                                <p class="text-sm opacity-80">support@leisureinspect.co.za</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="glass-effect rounded-2xl p-6 text-white" data-aos="fade-up" data-aos-delay="300">
+                        <div class="flex items-center space-x-4">
+                            <i class="fas fa-clock text-3xl text-yellow-400"></i>
+                            <div>
+                                <p class="font-bold">Support Hours</p>
+                                <p class="text-sm opacity-80">Mon-Fri: 8AM - 8PM</p>
+                                <p class="text-sm opacity-80">Sat-Sun: 9AM - 5PM</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+    
+    <!-- Purchase Confirmation Modal -->
+    <div class="modal" id="confirmModal">
+        <div class="glass-effect rounded-3xl p-8 max-w-md w-full mx-4" data-aos="zoom-in">
+            <h3 class="text-2xl font-bold text-white mb-4 text-center">Confirm Purchase</h3>
+            <div class="text-white text-center mb-6">
+                <p class="mb-2">Event: <span id="modalEventName" class="font-bold"></span></p>
+                <p class="text-3xl font-bold mb-4">R<span id="modalEventPrice"></span></p>
+                <p class="text-sm opacity-80">Your balance: R3,200</p>
+            </div>
+            <div class="space-y-3">
+                <button onclick="showVoucherOption()" class="w-full bg-white text-purple-600 font-semibold py-3 rounded-lg hover:bg-opacity-90">
+                    Proceed to Checkout
+                </button>
+                <button onclick="closeModal('confirmModal')" class="w-full bg-white bg-opacity-20 text-white font-semibold py-3 rounded-lg hover:bg-opacity-30">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Voucher Option Modal -->
+    <div class="modal" id="voucherModal">
+        <div class="glass-effect rounded-3xl p-8 max-w-md w-full mx-4">
+            <div class="text-center mb-6">
+                <i class="fas fa-gift text-6xl text-yellow-400 mb-4"></i>
+                <h3 class="text-2xl font-bold text-white mb-2">Would you like a Store Voucher?</h3>
+                <p class="text-white opacity-80">Get a FREE R50 ShopRite voucher with your purchase!</p>
+            </div>
+            <div class="space-y-3">
+                <button onclick="completePurchase(true)" class="w-full bg-yellow-400 text-purple-900 font-semibold py-3 rounded-lg hover:bg-yellow-300">
+                    <i class="fas fa-check-circle mr-2"></i> Yes, Include Voucher
+                </button>
+                <button onclick="completePurchase(false)" class="w-full bg-white bg-opacity-20 text-white font-semibold py-3 rounded-lg hover:bg-opacity-30">
+                    No, Thanks
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Success Modal -->
+    <div class="modal" id="successModal">
+        <div class="glass-effect rounded-3xl p-8 max-w-md w-full mx-4">
+            <div class="text-center mb-6">
+                <i class="fas fa-check-circle text-6xl text-green-400 mb-4"></i>
+                <h3 class="text-2xl font-bold text-white mb-2">Event Purchase Successful!</h3>
+                <p class="text-white opacity-80">Your ticket has been sent to your email</p>
+            </div>
+            <button onclick="showTicket()" class="w-full btn-primary text-white font-semibold py-3 rounded-lg mb-3">
+                View Ticket
+            </button>
+            <button onclick="closeModal('successModal'); showSection('dashboard')" class="w-full bg-white bg-opacity-20 text-white font-semibold py-3 rounded-lg hover:bg-opacity-30">
+                Back to Dashboard
+            </button>
+        </div>
+    </div>
+    
+    <!-- Ticket Display Modal -->
+    <div class="modal" id="ticketModal">
+        <div class="bg-white rounded-3xl p-0 max-w-md w-full mx-4 overflow-hidden">
+            <div class="ticket-slip">
+                <div class="text-center mb-6">
+                    <h2 class="text-2xl font-bold gradient-text mb-2">Leisure Inspect</h2>
+                    <p class="text-gray-600 text-sm">Event Ticket</p>
+                </div>
+                
+                <div class="mb-6">
+                    <h3 class="text-xl font-bold text-gray-800 mb-3" id="ticketEventName"></h3>
+                    <div class="space-y-2 text-sm text-gray-600">
+                        <p><i class="fas fa-calendar mr-2"></i> Date: December 15, 2025</p>
+                        <p><i class="fas fa-clock mr-2"></i> Time: 18:00</p>
+                        <p><i class="fas fa-map-marker-alt mr-2"></i> Venue: Event Center</p>
+                        <p><i class="fas fa-user mr-2"></i> Guest User</p>
+                        <p><i class="fas fa-ticket-alt mr-2"></i> Ticket ID: LI-2025-<span id="ticketId"></span></p>
+                    </div>
+                </div>
+                
+                <div class="text-center mb-4">
+                    <svg id="ticketBarcode"></svg>
+                </div>
+                
+                <div class="perforated-line"></div>
+                
+                <div id="voucherSection" class="hidden">
+                    <div class="text-center mt-6">
+                        <div class="flex items-center justify-center mb-4">
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/69/Shoprite_logo.svg/1200px-Shoprite_logo.svg.png" alt="ShopRite" class="h-8">
+                        </div>
+                        <h4 class="text-lg font-bold text-gray-800 mb-3">Store Voucher</h4>
+                        <p class="text-3xl font-bold gradient-text mb-4">R50 OFF</p>
+                        <p class="text-sm text-gray-600 mb-4">Valid at any ShopRite store</p>
+                        <svg id="voucherBarcode"></svg>
+                        <p class="text-xs text-gray-500 mt-4">Voucher Code: SR-<span id="voucherId"></span></p>
+                        <p class="text-xs text-gray-500">Expires: January 31, 2026</p>
+                    </div>
+                </div>
+                
+                <div class="mt-6 space-y-2">
+                    <button onclick="downloadTicket()" class="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold py-3 rounded-lg hover:shadow-lg">
+                        <i class="fas fa-download mr-2"></i> Download Ticket
+                    </button>
+                    <button onclick="closeModal('ticketModal')" class="w-full bg-gray-200 text-gray-700 font-semibold py-3 rounded-lg hover:bg-gray-300">
+                        Close
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Initialize AOS
+        AOS.init({
+            duration: 800,
+            once: true
+        });
+        
+        // Global variables
+        let selectedEvent = null;
+        let includeVoucher = false;
+        
+        // Toggle Sidebar
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('overlay');
+            sidebar.classList.toggle('active');
+            overlay.classList.toggle('active');
+        }
+        
+        // Show/Hide Sections
+        function showSection(sectionId) {
+            const sections = ['dashboard', 'wallet', 'tours', 'loyalty', 'promos', 'refer', 'support'];
+            sections.forEach(section => {
+                document.getElementById(section).classList.add('hidden');
+            });
+            document.getElementById(sectionId).classList.remove('hidden');
+            toggleSidebar();
+            window.scrollTo({top: 0, behavior: 'smooth'});
+        }
+        
+        // Authentication Functions
+        function showRegister() {
+            document.getElementById('loginForm').classList.add('hidden');
+            document.getElementById('registerForm').classList.remove('hidden');
+        }
+        
+        function showLogin() {
+            document.getElementById('registerForm').classList.add('hidden');
+            document.getElementById('loginForm').classList.remove('hidden');
+        }
+        
+        function register() {
+            const name = document.getElementById('regName').value;
+            if (name) {
+                document.getElementById('userName').textContent = name;
+                document.getElementById('walletName').textContent = name;
+            }
+            enterApp();
+        }
+        
+        function login() {
+            const email = document.getElementById('loginEmail').value;
+            if (email) {
+                document.getElementById('userName').textContent = email.split('@')[0];
+                document.getElementById('walletName').textContent = email.split('@')[0];
+            }
+            enterApp();
+        }
+        
+        function guestMode() {
+            enterApp();
+        }
+        
+        function enterApp() {
+            document.getElementById('welcomeScreen').classList.add('hidden');
+            document.getElementById('appContainer').classList.remove('hidden');
+            AOS.refresh();
+        }
+        
+        function logout() {
+            document.getElementById('appContainer').classList.add('hidden');
+            document.getElementById('welcomeScreen').classList.remove('hidden');
+            toggleSidebar();
+        }
+        
+        // Event Selection
+        function selectEvent(name, price, id) {
+            selectedEvent = {name, price, id};
+            document.getElementById('modalEventName').textContent = name;
+            document.getElementById('modalEventPrice').textContent = price;
+            openModal('confirmModal');
+        }
+        
+        // Modal Functions
+        function openModal(modalId) {
+            document.getElementById(modalId).classList.add('active');
+        }
+        
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+        }
+        
+        function showVoucherOption() {
+            closeModal('confirmModal');
+            openModal('voucherModal');
+        }
+        
+        function completePurchase(withVoucher) {
+            includeVoucher = withVoucher;
+            closeModal('voucherModal');
+            openModal('successModal');
+        }
+        
+        function showTicket() {
+            closeModal('successModal');
+            
+            // Generate ticket details
+            const ticketId = Math.random().toString(36).substr(2, 9).toUpperCase();
+            const voucherId = Math.random().toString(36).substr(2, 9).toUpperCase();
+            
+            document.getElementById('ticketEventName').textContent = selectedEvent.name;
+            document.getElementById('ticketId').textContent = ticketId;
+            
+            // Generate barcodes
+            JsBarcode("#ticketBarcode", "LI2025" + ticketId, {
+                format: "CODE128",
+                width: 2,
+                height: 60,
+                displayValue: true
+            });
+            
+            if (includeVoucher) {
+                document.getElementById('voucherSection').classList.remove('hidden');
+                document.getElementById('voucherId').textContent = voucherId;
+                JsBarcode("#voucherBarcode", "SR" + voucherId, {
+                    format: "CODE128",
+                    width: 2,
+                    height: 60,
+                    displayValue: true
+                });
+            } else {
+                document.getElementById('voucherSection').classList.add('hidden');
+            }
+            
+            openModal('ticketModal');
+        }
+        
+        function downloadTicket() {
+            alert('Ticket downloaded! Check your downloads folder.');
+        }
+        
+        // Wallet Functions
+        function depositFunds() {
+            const amount = document.getElementById('depositAmount').value;
+            if (amount && amount > 0) {
+                alert(`Successfully deposited R${amount} to your wallet!`);
+                document.getElementById('depositAmount').value = '';
+            } else {
+                alert('Please enter a valid amount');
+            }
+        }
+    </script>
+</body>
+</html>
